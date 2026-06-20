@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: execution-progress-tracker
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn server:app
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: execution-progress-db
+          property: connectionString
+
+databases:
+  - name: execution-progress-db
+    plan: free
+    databaseName: progress_tracker
+    user: progress_tracker

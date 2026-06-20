@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>執行進度管控表</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>執行進度管控表</h1>
+        </header>
+        <main>
+            <section class="summary-grid" aria-label="進度摘要">
+                <article class="summary-card">
+                    <span>工作項目</span>
+                    <strong id="totalWorkItems">0</strong>
+                </article>
+                <article class="summary-card">
+                    <span>執行中</span>
+                    <strong id="activeWorkItems">0</strong>
+                </article>
+                <article class="summary-card">
+                    <span>已結案</span>
+                    <strong id="completedWorkItems">0</strong>
+                </article>
+                <article class="summary-card">
+                    <span>累計時數</span>
+                    <strong id="totalActualHours">0</strong>
+                </article>
+            </section>
+
+            <div class="workspace-grid">
+                <section class="panel work-item-form">
+                    <h2>新增工作項目</h2>
+                    <form id="workItemForm">
+                        <div class="form-group">
+                            <label for="workItemName">工作項目名稱</label>
+                            <input type="text" id="workItemName" name="workItemName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="projectMemberName">專案人員姓名</label>
+                            <input type="text" id="projectMemberName" name="projectMemberName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="startDate">開始日期</label>
+                            <input type="date" id="startDate" name="startDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">結束日期</label>
+                            <input type="date" id="endDate" name="endDate" required>
+                        </div>
+                        <button class="button primary" type="submit">新增工作項目</button>
+                    </form>
+                </section>
+
+                <section class="panel work-items-list">
+                    <h2>工作項目列表</h2>
+                    <div id="workItemsList">
+                        <!-- Work items will be dynamically inserted here -->
+                    </div>
+                </section>
+
+                <section class="panel progress-reports-list">
+                    <h2>進度報告列表</h2>
+                    <div id="progressReportsList">
+                        <!-- Progress reports will be dynamically inserted here -->
+                    </div>
+                </section>
+            </div>
+
+            <section class="panel gantt-chart">
+                <div class="section-heading">
+                    <h2>專案甘特圖</h2>
+                    <div class="gantt-chart-controls">
+                        <label for="intervalSelect">時間間隔</label>
+                        <select id="intervalSelect">
+                            <option value="weekly">週視圖</option>
+                            <option value="monthly">月視圖</option>
+                            <option value="quarterly">季度視圖</option>
+                            <option value="yearly">年視圖</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="ganttChartContainer">
+                    <div id="ganttChart"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <section class="progress-modal" id="progressReportModal" aria-hidden="true" hidden>
+        <div class="modal-card panel progress-report-form" role="dialog" aria-modal="true" aria-labelledby="progressReportTitle">
+            <div class="modal-heading">
+                <div>
+                    <h2 id="progressReportTitle">填報執行進度</h2>
+                    <p id="progressModalSubtitle" class="item-subtitle"></p>
+                </div>
+                <button class="modal-close" type="button" id="closeProgressReportModal" aria-label="關閉填報視窗">×</button>
+            </div>
+            <form id="progressReportForm">
+                <div class="form-group">
+                    <label for="progressWorkItemSelect">選擇工作項目</label>
+                    <select id="progressWorkItemSelect" name="progressWorkItemSelect" required>
+                        <option value="">-- 請選擇工作項目 --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportMonth">填報月份</label>
+                    <input type="month" id="reportMonth" name="reportMonth" required>
+                </div>
+                <div class="form-group">
+                    <label for="actualHours">實際執行時間 (小時)</label>
+                    <input type="number" id="actualHours" name="actualHours" required min="0" step="0.5">
+                </div>
+                <div class="form-group">
+                    <label for="executionDate">實際執行日期</label>
+                    <input type="date" id="executionDate" name="executionDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="status">執行情形</label>
+                    <select id="status" name="status" required>
+                        <option value="">-- 請選擇執行情形 --</option>
+                        <option value="未開始">未開始</option>
+                        <option value="執行中">執行中</option>
+                        <option value="結案">結案</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="progressDescription">進度說明</label>
+                    <textarea id="progressDescription" name="progressDescription" rows="4" required></textarea>
+                </div>
+                <button class="button primary" type="submit">送出填報</button>
+            </form>
+        </div>
+    </section>
+    <script src="script.js"></script>
+</body>
+</html>

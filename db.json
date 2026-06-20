@@ -1,0 +1,25 @@
+{
+  "workItems": [
+    {
+      "name": "SciVal & Scopus",
+      "startDate": "2026-04-01",
+      "endDate": "2026-09-30",
+      "projectMember": "鄭喬文",
+      "id": 1,
+      "createdAt": "2026-06-18T20:02:05.137374",
+      "updatedAt": "2026-06-18T20:05:39.777315"
+    }
+  ],
+  "progressReports": [
+    {
+      "workItemId": 1,
+      "reportMonth": "2026-06",
+      "actualHours": 10.0,
+      "executionDate": "2026-06-09",
+      "status": "執行中",
+      "description": "驗收資料準備",
+      "id": 1,
+      "createdAt": "2026-06-18T20:04:39.307455"
+    }
+  ]
+}
