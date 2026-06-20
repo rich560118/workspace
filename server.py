@@ -12,6 +12,7 @@ CORS(app)  # Enable CORS for all routes
 # Data file path
 DATA_FILE = os.environ.get('DATA_FILE', 'db.json')
 DATABASE_URL = os.environ.get('DATABASE_URL')
+DATA_STORE_INITIALIZED = False
 
 # Google Sheets configuration
 GOOGLE_SHEETS_CREDENTIALS_FILE = 'google-sheets-credentials.json'
@@ -67,13 +68,21 @@ def init_postgres_data():
             """, ("data", Jsonb(seed_data)))
 
 def init_data_store():
+    global DATA_STORE_INITIALIZED
+    if DATA_STORE_INITIALIZED:
+        return
+
     if DATABASE_URL:
         init_postgres_data()
     else:
         init_data_file()
 
+    DATA_STORE_INITIALIZED = True
+
 # Load data from file
 def load_data():
+    init_data_store()
+
     if DATABASE_URL:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -85,6 +94,8 @@ def load_data():
 
 # Save data to file
 def save_data(data):
+    init_data_store()
+
     if DATABASE_URL:
         from psycopg.types.json import Jsonb
 
@@ -178,9 +189,6 @@ def get_report_month(report):
         return execution_date[:7]
 
     return ""
-
-# Initialize data store on startup
-init_data_store()
 
 # Serve the frontend index.html
 @app.route('/')
