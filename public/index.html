@@ -64,7 +64,13 @@
                 </section>
 
                 <section class="panel progress-reports-list">
-                    <h2>進度報告列表</h2>
+                    <div class="section-heading">
+                        <h2>進度報告列表</h2>
+                        <div class="export-actions">
+                            <a class="button small secondary" href="/api/export/progress-reports.svg" download>匯出圖片</a>
+                            <a class="button small fill" href="/api/export/progress-reports.pptx" download>匯出PPT</a>
+                        </div>
+                    </div>
                     <div id="progressReportsList">
                         <!-- Progress reports will be dynamically inserted here -->
                     </div>
@@ -74,14 +80,20 @@
             <section class="panel gantt-chart">
                 <div class="section-heading">
                     <h2>專案甘特圖</h2>
-                    <div class="gantt-chart-controls">
-                        <label for="intervalSelect">時間間隔</label>
-                        <select id="intervalSelect">
-                            <option value="weekly">週視圖</option>
-                            <option value="monthly">月視圖</option>
-                            <option value="quarterly">季度視圖</option>
-                            <option value="yearly">年視圖</option>
-                        </select>
+                    <div class="heading-actions">
+                        <div class="gantt-chart-controls">
+                            <label for="intervalSelect">時間間隔</label>
+                            <select id="intervalSelect">
+                                <option value="weekly">週視圖</option>
+                                <option value="monthly">月視圖</option>
+                                <option value="quarterly">季度視圖</option>
+                                <option value="yearly">年視圖</option>
+                            </select>
+                        </div>
+                        <div class="export-actions">
+                            <a class="button small secondary" href="/api/export/gantt.svg" download>匯出圖片</a>
+                            <a class="button small fill" href="/api/export/gantt.pptx" download>匯出PPT</a>
+                        </div>
                     </div>
                 </div>
                 <div id="ganttChartContainer">

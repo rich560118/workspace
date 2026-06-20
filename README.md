@@ -20,6 +20,10 @@
    - 依工作項目的開始/結束日期繪製期程
    - 依最新填報狀態與執行日期計算進度比例
 
+4. **匯出功能**
+   - 進度報告列表可匯出為圖片（SVG）或 PPTX
+   - 專案甘特圖可匯出為圖片（SVG）或 PPTX
+
 ## 安裝與使用
 
 ### 前置條件
@@ -73,6 +77,13 @@ http://localhost:5000
 - `GET /api/gantt-data?interval=weekly`：取得甘特圖資料
 
 `interval` 可使用 `weekly`、`monthly`、`quarterly`、`yearly`。
+
+### 匯出
+
+- `GET /api/export/progress-reports.svg`：匯出進度報告列表圖片
+- `GET /api/export/progress-reports.pptx`：匯出進度報告列表 PPT
+- `GET /api/export/gantt.svg`：匯出甘特圖圖片
+- `GET /api/export/gantt.pptx`：匯出甘特圖 PPT
 
 ## 資料儲存
 

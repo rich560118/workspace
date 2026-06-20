@@ -150,13 +150,17 @@ main {
 }
 
 .button {
+    display: inline-flex;
     min-height: 38px;
+    align-items: center;
+    justify-content: center;
     padding: 9px 14px;
     border: 1px solid transparent;
     border-radius: 6px;
     cursor: pointer;
     font: inherit;
     font-weight: 700;
+    text-decoration: none;
 }
 
 .button.primary {
@@ -197,6 +201,13 @@ main {
 
 .button.danger:hover {
     background: #ffd1d1;
+}
+
+.button.small {
+    min-height: 34px;
+    padding: 7px 11px;
+    font-size: 14px;
+    white-space: nowrap;
 }
 
 #workItemsList,
@@ -303,6 +314,15 @@ main {
 
 .section-heading h2 {
     margin-bottom: 0;
+}
+
+.heading-actions,
+.export-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .gantt-chart-controls {
@@ -565,6 +585,15 @@ body.modal-open {
     .item-header {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .heading-actions,
+    .export-actions {
+        justify-content: stretch;
+    }
+
+    .export-actions .button {
+        flex: 1;
     }
 
     .gantt-chart-controls {
