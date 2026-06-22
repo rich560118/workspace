@@ -66,9 +66,16 @@
                 <section class="panel progress-reports-list">
                     <div class="section-heading">
                         <h2>進度報告列表</h2>
-                        <div class="export-actions">
-                            <a class="button small secondary" href="/api/export/progress-reports.svg" download>匯出圖片</a>
-                            <a class="button small fill" href="/api/export/progress-reports.pptx" download>匯出PPT</a>
+                        <div class="heading-actions">
+                            <div class="report-month-filter">
+                                <label for="progressReportMonthFilter">填報月份</label>
+                                <input type="month" id="progressReportMonthFilter" name="progressReportMonthFilter">
+                                <button class="button small secondary" type="button" id="clearProgressReportMonthFilter">全部月份</button>
+                            </div>
+                            <div class="export-actions">
+                                <a class="button small secondary" href="api/export/progress-reports.svg" data-export="progress-reports-svg" download>匯出圖片</a>
+                                <a class="button small fill" href="api/export/progress-reports.pptx" data-export="progress-reports-pptx" download>匯出PPT</a>
+                            </div>
                         </div>
                     </div>
                     <div id="progressReportsList">
@@ -91,8 +98,8 @@
                             </select>
                         </div>
                         <div class="export-actions">
-                            <a class="button small secondary" href="/api/export/gantt.svg" download>匯出圖片</a>
-                            <a class="button small fill" href="/api/export/gantt.pptx" download>匯出PPT</a>
+                            <a class="button small secondary" href="api/export/gantt.svg" data-export="gantt-svg" download>匯出圖片</a>
+                            <a class="button small fill" href="api/export/gantt.pptx" data-export="gantt-pptx" download>匯出PPT</a>
                         </div>
                     </div>
                 </div>
@@ -143,7 +150,7 @@
                     <label for="progressDescription">進度說明</label>
                     <textarea id="progressDescription" name="progressDescription" rows="4" required></textarea>
                 </div>
-                <button class="button primary" type="submit">送出填報</button>
+                <button class="button primary" type="submit" id="progressReportSubmit">送出填報</button>
             </form>
         </div>
     </section>

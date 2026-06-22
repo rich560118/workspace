@@ -210,6 +210,24 @@ main {
     white-space: nowrap;
 }
 
+.button.is-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.button.is-disabled:hover {
+    filter: none;
+}
+
+.button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.button:disabled:hover {
+    filter: none;
+}
+
 #workItemsList,
 #progressReportsList {
     display: grid;
@@ -323,6 +341,28 @@ main {
     align-items: center;
     flex-wrap: wrap;
     justify-content: flex-end;
+}
+
+.report-month-filter {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.report-month-filter label {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.report-month-filter input {
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--text);
+    font: inherit;
 }
 
 .gantt-chart-controls {
@@ -590,6 +630,16 @@ body.modal-open {
     .heading-actions,
     .export-actions {
         justify-content: stretch;
+    }
+
+    .report-month-filter {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .report-month-filter input,
+    .report-month-filter .button {
+        width: 100%;
     }
 
     .export-actions .button {

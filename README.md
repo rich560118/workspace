@@ -11,9 +11,10 @@
 
 2. **進度填報**
    - 在工作項目列表點選「填報」開啟填報視窗
+   - 已填報資料可點選「修正填報」更新
    - 選擇工作項目與填報月份
    - 填寫實際執行時間、實際執行日期、執行情形與進度說明
-   - 顯示每個工作項目的最新進度報告
+   - 進度報告列表可依填報月份查看每月進度
 
 3. **專案甘特圖**
    - 支援週、月、季度、年視圖
@@ -57,6 +58,14 @@ http://localhost:5000
 
 發布步驟請看 `DEPLOYMENT.md`。
 
+## GitHub Pages 靜態部署
+
+本專案也支援免費 GitHub Pages 部署。推送到 `main` 分支後，`.github/workflows/deploy-pages.yml` 會自動發布 `public/` 資料夾。
+
+GitHub Pages 版不會執行 Flask/Python，資料會儲存在使用者瀏覽器的 `localStorage`。因此不同裝置或不同使用者之間不會共用資料。靜態版支援工作項目、進度填報、甘特圖與 SVG 圖片匯出；PPTX 匯出需要 Flask 後端，請使用本機或 Render 版本。
+
+詳細步驟請看 `GITHUB_PAGES_DEPLOY.md`。
+
 ## API 端點
 
 ### 工作項目
@@ -70,6 +79,7 @@ http://localhost:5000
 
 - `GET /api/progress-reports`：取得所有進度報告
 - `POST /api/progress-reports`：建立新進度報告
+- `PUT /api/progress-reports/<id>`：修正既有進度報告
 - `GET /api/progress-reports/work-item/<work_item_id>`：取得特定工作項目的進度報告
 
 ### 甘特圖
@@ -80,8 +90,8 @@ http://localhost:5000
 
 ### 匯出
 
-- `GET /api/export/progress-reports.svg`：匯出進度報告列表圖片
-- `GET /api/export/progress-reports.pptx`：匯出進度報告列表 PPT
+- `GET /api/export/progress-reports.svg?reportMonth=YYYY-MM`：匯出進度報告列表圖片
+- `GET /api/export/progress-reports.pptx?reportMonth=YYYY-MM`：匯出進度報告列表 PPT
 - `GET /api/export/gantt.svg`：匯出甘特圖圖片
 - `GET /api/export/gantt.pptx`：匯出甘特圖 PPT
 

@@ -205,30 +205,87 @@ def format_hours(value):
     number = as_number(value)
     return str(int(number)) if number.is_integer() else f"{number:.1f}"
 
+def prepare_progress_report(payload, data):
+    report = dict(payload or {})
+
+    try:
+        work_item_id = int(report.get("workItemId"))
+    except (TypeError, ValueError):
+        return None, None, "找不到指定的工作項目"
+
+    work_item = next((item for item in data["workItems"] if item.get("id") == work_item_id), None)
+    if not work_item:
+        return None, None, "找不到指定的工作項目"
+
+    try:
+        actual_hours = float(report.get("actualHours", 0))
+    except (TypeError, ValueError):
+        return None, None, "實際執行時間格式不正確"
+
+    if actual_hours < 0:
+        return None, None, "實際執行時間不可小於 0"
+
+    report_month = parse_report_month(report.get("reportMonth"))
+    if not report_month:
+        return None, None, "請提供有效的填報月份"
+    if not parse_iso_date(report.get("executionDate")):
+        return None, None, "請提供有效的實際執行日期"
+    if report.get("status") not in VALID_STATUSES:
+        return None, None, "請選擇有效的執行情形"
+
+    description = (report.get("description") or "").strip()
+    if not description:
+        return None, None, "進度說明不可空白"
+
+    return {
+        "workItemId": work_item_id,
+        "reportMonth": report_month,
+        "actualHours": actual_hours,
+        "executionDate": report.get("executionDate"),
+        "status": report.get("status"),
+        "description": description
+    }, work_item, None
+
+def report_recency_key(report):
+    return (
+        get_report_month(report),
+        str(report.get("updatedAt") or report.get("createdAt", ""))
+    )
+
 def latest_reports_by_work_item(data):
     latest_reports = {}
     for report in data["progressReports"]:
         work_item_id = report.get("workItemId")
         existing = latest_reports.get(work_item_id)
-        if not existing or str(report.get("createdAt", "")) > str(existing.get("createdAt", "")):
+        if not existing or report_recency_key(report) > report_recency_key(existing):
             latest_reports[work_item_id] = report
     return latest_reports
 
-def progress_export_rows(data):
-    latest_reports = latest_reports_by_work_item(data)
+def progress_export_rows(data, report_month=None):
+    reports = [
+        report for report in data["progressReports"]
+        if not report_month or get_report_month(report) == report_month
+    ]
+    latest_reports = {}
+    for report in reports:
+        work_item_id = report.get("workItemId")
+        existing = latest_reports.get(work_item_id)
+        if not existing or report_recency_key(report) > report_recency_key(existing):
+            latest_reports[work_item_id] = report
+
     rows = []
 
     for work_item in sorted(data["workItems"], key=lambda item: item.get("startDate", "")):
         report = latest_reports.get(work_item.get("id"))
         total_hours = sum(
             as_number(item.get("actualHours", 0))
-            for item in data["progressReports"]
+            for item in reports
             if item.get("workItemId") == work_item.get("id")
         )
         rows.append({
             "name": work_item.get("name", ""),
             "projectMember": work_item.get("projectMember", ""),
-            "reportMonth": format_display_month(get_report_month(report)) if report else "尚未填報",
+            "reportMonth": format_display_month(get_report_month(report)) if report else format_display_month(report_month) if report_month else "尚未填報",
             "actualHours": f"{format_hours(total_hours)} 小時",
             "executionDate": format_display_date(report.get("executionDate")) if report else "尚未填報",
             "status": report.get("status", "未開始") if report else "未開始",
@@ -247,8 +304,8 @@ def download_response(body, filename, mimetype):
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
-def build_progress_svg(data):
-    rows = progress_export_rows(data)
+def build_progress_svg(data, report_month=None):
+    rows = progress_export_rows(data, report_month)
     width = 1400
     row_height = 126
     height = 150 + max(len(rows), 1) * row_height
@@ -405,7 +462,7 @@ def ppt_bytes(prs):
     output.seek(0)
     return output
 
-def build_progress_pptx(data):
+def build_progress_pptx(data, report_month=None):
     from pptx import Presentation
     from pptx.enum.shapes import MSO_SHAPE
     from pptx.util import Inches
@@ -415,7 +472,7 @@ def build_progress_pptx(data):
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
     slide = prs.slides.add_slide(prs.slide_layouts[6])
-    rows = progress_export_rows(data)
+    rows = progress_export_rows(data, report_month)
 
     add_ppt_text(slide, "進度報告列表", 0.45, 0.3, 8.5, 0.45, size=26, bold=True)
     add_ppt_text(slide, f'匯出時間：{datetime.now().strftime("%Y/%m/%d %H:%M")}', 0.45, 0.78, 5, 0.3, size=10, color=(102, 119, 137))
@@ -666,32 +723,21 @@ def get_progress_reports():
 @app.route('/api/progress-reports', methods=['POST'])
 def create_progress_report():
     data = load_data()
-    new_report = request.get_json(silent=True) or {}
-    work_item_id = new_report.get("workItemId")
-    work_item = next((item for item in data["workItems"] if item.get("id") == work_item_id), None)
+    new_report, work_item, validation_error = prepare_progress_report(request.get_json(silent=True), data)
+    if validation_error:
+        return jsonify({"error": validation_error}), 400
 
-    if not work_item:
-        return jsonify({"error": "找不到指定的工作項目"}), 400
+    existing_report = next((
+        report for report in sorted(data["progressReports"], key=report_recency_key, reverse=True)
+        if report.get("workItemId") == new_report["workItemId"]
+        and get_report_month(report) == new_report["reportMonth"]
+    ), None)
 
-    try:
-        new_report["actualHours"] = float(new_report.get("actualHours", 0))
-    except (TypeError, ValueError):
-        return jsonify({"error": "實際執行時間格式不正確"}), 400
-
-    if new_report["actualHours"] < 0:
-        return jsonify({"error": "實際執行時間不可小於 0"}), 400
-    report_month = parse_report_month(new_report.get("reportMonth"))
-    if not report_month:
-        return jsonify({"error": "請提供有效的填報月份"}), 400
-    if not parse_iso_date(new_report.get("executionDate")):
-        return jsonify({"error": "請提供有效的實際執行日期"}), 400
-    if new_report.get("status") not in VALID_STATUSES:
-        return jsonify({"error": "請選擇有效的執行情形"}), 400
-    if not (new_report.get("description") or "").strip():
-        return jsonify({"error": "進度說明不可空白"}), 400
-
-    new_report["description"] = new_report["description"].strip()
-    new_report["reportMonth"] = report_month
+    if existing_report:
+        existing_report.update(new_report)
+        existing_report["updatedAt"] = datetime.now().isoformat()
+        save_data(data)
+        return jsonify(existing_report)
     
     # Add ID and timestamp
     new_report["id"] = next_id(data["progressReports"])
@@ -710,6 +756,23 @@ def create_progress_report():
         # Continue anyway - we don't want to fail the main request
     
     return jsonify(new_report), 201
+
+# Update an existing progress report
+@app.route('/api/progress-reports/<int:report_id>', methods=['PUT'])
+def update_progress_report(report_id):
+    data = load_data()
+    updates, _work_item, validation_error = prepare_progress_report(request.get_json(silent=True), data)
+    if validation_error:
+        return jsonify({"error": validation_error}), 400
+
+    for report in data["progressReports"]:
+        if report.get("id") == report_id:
+            report.update(updates)
+            report["updatedAt"] = datetime.now().isoformat()
+            save_data(data)
+            return jsonify(report)
+
+    return jsonify({"error": "找不到指定的進度報告"}), 404
 
 # Get progress reports for a specific work item
 @app.route('/api/progress-reports/work-item/<int:work_item_id>', methods=['GET'])
@@ -736,7 +799,7 @@ def get_gantt_data():
         if related_reports:
             latest_report = max(
                 related_reports,
-                key=lambda report: report.get("createdAt", "")
+                key=report_recency_key
             )
         
         gantt_data.append({
@@ -758,7 +821,10 @@ def get_gantt_data():
 @app.route('/api/export/progress-reports.svg', methods=['GET'])
 def export_progress_reports_svg():
     data = load_data()
-    return download_response(build_progress_svg(data), "progress-reports.svg", "image/svg+xml")
+    report_month = request.args.get("reportMonth")
+    if report_month and not parse_report_month(report_month):
+        return jsonify({"error": "請提供有效的填報月份"}), 400
+    return download_response(build_progress_svg(data, report_month), "progress-reports.svg", "image/svg+xml")
 
 @app.route('/api/export/gantt.svg', methods=['GET'])
 def export_gantt_svg():
@@ -768,8 +834,11 @@ def export_gantt_svg():
 @app.route('/api/export/progress-reports.pptx', methods=['GET'])
 def export_progress_reports_pptx():
     data = load_data()
+    report_month = request.args.get("reportMonth")
+    if report_month and not parse_report_month(report_month):
+        return jsonify({"error": "請提供有效的填報月份"}), 400
     return send_file(
-        build_progress_pptx(data),
+        build_progress_pptx(data, report_month),
         as_attachment=True,
         download_name="progress-reports.pptx",
         mimetype=PPTX_MIMETYPE
